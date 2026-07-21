@@ -147,3 +147,168 @@ class TestValidateSpawnSpec:
         assert len(result.errors) >= 2
         assert any("role" in e.lower() for e in result.errors)
         assert any("personality" in e.lower() for e in result.errors)
+
+    # --- New tests for review findings ---
+
+    def test_non_dict_input_fails_gracefully(self):
+        """SEC-01: non-dict input should return errors, not crash."""
+        for bad in [None, [], "string", 42]:
+            result = validate_spawn_spec(bad)  # type: ignore
+            assert not result.valid
+            assert any("dict" in e.lower() for e in result.errors)
+
+    def test_archetype_as_string_fails_gracefully(self):
+        """SEC-02: archetype as string instead of dict should not crash."""
+        spec = {
+            "agent_spawn": {
+                "role": "Test", "archetype": "Systems-Fixer",
+                "personality": "t", "skills": ["x"],
+                "tenure": {"type": "epoch"},
+                "accountability": {"oversight": "knowledge-council", "ethics_path": "ethics-council"},
+            }
+        }
+        result = validate_spawn_spec(spec)
+        assert not result.valid
+
+    def test_tenure_as_string_fails_gracefully(self):
+        """SEC-02: tenure as string should not crash."""
+        spec = {
+            "agent_spawn": {
+                "role": "Test", "archetype": {"primary": "Scholar-Philosopher"},
+                "personality": "t", "skills": ["x"],
+                "tenure": "epoch",
+                "accountability": {"oversight": "knowledge-council", "ethics_path": "ethics-council"},
+            }
+        }
+        result = validate_spawn_spec(spec)
+        assert not result.valid
+        # Should get a "must be a dict" or "missing required" type error
+
+    def test_oversight_council_valid(self):
+        spec = {
+            "agent_spawn": {
+                "role": "T", "archetype": {"primary": "Healer-Magus"},
+                "personality": "t", "skills": ["x"],
+                "tenure": {"type": "epoch"},
+                "accountability": {"oversight": "steering-council", "ethics_path": "ethics-council"},
+            }
+        }
+        result = validate_spawn_spec(spec)
+        assert result.valid
+
+    def test_oversight_council_invalid_fails(self):
+        spec = {
+            "agent_spawn": {
+                "role": "T", "archetype": {"primary": "Healer-Magus"},
+                "personality": "t", "skills": ["x"],
+                "tenure": {"type": "epoch"},
+                "accountability": {"oversight": "finance-council", "ethics_path": "ethics-council"},
+            }
+        }
+        result = validate_spawn_spec(spec)
+        assert not result.valid
+
+    def test_renewal_invalid_fails(self):
+        spec = {
+            "agent_spawn": {
+                "role": "T", "archetype": {"primary": "Scholar-Philosopher"},
+                "personality": "t", "skills": ["x"],
+                "tenure": {"type": "epoch", "renewal": "forever"},
+                "accountability": {"oversight": "knowledge-council", "ethics_path": "ethics-council"},
+            }
+        }
+        result = validate_spawn_spec(spec)
+        assert not result.valid
+
+    def test_ethics_path_invalid_fails(self):
+        """CQ-07: ethics_path must be 'ethics-council'."""
+        spec = {
+            "agent_spawn": {
+                "role": "T", "archetype": {"primary": "Scholar-Philosopher"},
+                "personality": "t", "skills": ["x"],
+                "tenure": {"type": "epoch"},
+                "accountability": {"oversight": "knowledge-council", "ethics_path": "other"},
+            }
+        }
+        result = validate_spawn_spec(spec)
+        assert not result.valid
+
+    def test_skills_empty_fails(self):
+        """CQ-06: skills must be a non-empty array."""
+        spec = {
+            "agent_spawn": {
+                "role": "T", "archetype": {"primary": "Scholar-Philosopher"},
+                "personality": "t", "skills": [],
+                "tenure": {"type": "epoch"},
+                "accountability": {"oversight": "knowledge-council", "ethics_path": "ethics-council"},
+            }
+        }
+        result = validate_spawn_spec(spec)
+        assert not result.valid
+
+    def test_council_eligible_as_string_does_not_crash(self):
+        """CQ-05: eligible as string should not crash."""
+        spec = {
+            "agent_spawn": {
+                "role": "T", "archetype": {"primary": "Wise-Elder"},
+                "personality": "t", "skills": ["x"],
+                "tenure": {"type": "epoch"},
+                "accountability": {"oversight": "steering-council", "ethics_path": "ethics-council"},
+                "council_seat": {"eligible": "steering", "assigned": "steering"},
+            }
+        }
+        result = validate_spawn_spec(spec)
+        # Should not crash — returns invalid gracefully
+        assert not result.valid
+
+    def test_resources_priority_valid(self):
+        spec = {
+            "agent_spawn": {
+                "role": "T", "archetype": {"primary": "Scholar-Philosopher"},
+                "personality": "t", "skills": ["x"],
+                "tenure": {"type": "epoch"},
+                "accountability": {"oversight": "knowledge-council", "ethics_path": "ethics-council"},
+                "resources": {"priority": "critical"},
+            }
+        }
+        result = validate_spawn_spec(spec)
+        assert result.valid
+
+    def test_resources_priority_invalid_fails(self):
+        spec = {
+            "agent_spawn": {
+                "role": "T", "archetype": {"primary": "Scholar-Philosopher"},
+                "personality": "t", "skills": ["x"],
+                "tenure": {"type": "epoch"},
+                "accountability": {"oversight": "knowledge-council", "ethics_path": "ethics-council"},
+                "resources": {"priority": "highest"},
+            }
+        }
+        result = validate_spawn_spec(spec)
+        assert not result.valid
+
+    def test_retirement_condition_valid(self):
+        spec = {
+            "agent_spawn": {
+                "role": "T", "archetype": {"primary": "Seedbearer"},
+                "personality": "t", "skills": ["x"],
+                "tenure": {"type": "epoch"},
+                "accountability": {"oversight": "operations-council", "ethics_path": "ethics-council"},
+                "retirement": {"condition": "task-complete", "archive": True},
+            }
+        }
+        result = validate_spawn_spec(spec)
+        assert result.valid
+
+    def test_retirement_condition_invalid_fails(self):
+        spec = {
+            "agent_spawn": {
+                "role": "T", "archetype": {"primary": "Seedbearer"},
+                "personality": "t", "skills": ["x"],
+                "tenure": {"type": "epoch"},
+                "accountability": {"oversight": "operations-council", "ethics_path": "ethics-council"},
+                "retirement": {"condition": "never"},
+            }
+        }
+        result = validate_spawn_spec(spec)
+        assert not result.valid
