@@ -1,0 +1,480 @@
+# Agent Collective — Review Finding Registry
+# Canonical source of truth for all review findings across project phases.
+# Schema version 1. Each review produces entries here + a narrative findings file.
+---
+schema_version: 1
+last_updated: 2026-07-21
+project: agent-collective-architecture
+
+reviews:
+  - id: R-001
+    title: "Phase 1A — Code Security & Quality Review"
+    date: 2026-07-20
+    reviewer_archetypes: ["Aletheia Sentinel", "Systems-Fixer"]
+    reviewer_personas: ["security-specialist", "code-quality-specialist"]
+    scope: "agent_collective/validator.py, agent_collective/cli.py, tests/test_validator.py"
+    result: "FAIL → FIXED"
+    fix_commit: "25b9ca2"
+    findings_count: 13
+    tests_added: 13
+    total_tests: 32
+
+  - id: R-002
+    title: "Phase 1A — Dev Plan & Checklist Meta-Review"
+    date: 2026-07-20
+    reviewer_archetypes: ["Scholar-Philosopher"]
+    reviewer_personas: ["knowledge-curator"]
+    scope: "DEVELOPMENT_PLAN.md, reviews/architecture-compliance-checklist.md, requesting-code-review v3.0 coordinator prompt"
+    result: "PASS_WITH_NOTES → FIXED"
+    fix_commit: "dc46b25"
+    findings_count: 13
+
+  - id: R-003
+    title: "Phase 0 — Architecture Design Review"
+    date: 2026-07-20
+    reviewer_archetypes: ["Architect-Engineer"]
+    reviewer_personas: ["architect-engineer"]
+    scope: "ARCHITECTURE.md §I–§IX"
+    result: "CONDITIONAL → FIXED"
+    fix_commit: "2ea14d3 + f170de5"
+    findings_count: 19
+
+findings:
+  # ── Review 1: Security & Quality ──────────────────────────────────────
+  - id: SEC-01
+    review_id: R-001
+    severity: critical
+    category: security
+    title: "Non-dict input crashes validator"
+    description: "validate() crashes on non-dict input with unhandled TypeError. Any caller passing a non-dict (e.g., from a malformed YAML parse) causes a 500-style crash instead of a graceful error."
+    fix: "Added type guard at entry point — returns ValidationResult(success=False, errors=[...]) instead of crashing."
+    fix_commit: "25b9ca2"
+    verified_by: "test_non_dict_input_fails_gracefully"
+    status: verified
+
+  - id: SEC-02
+    review_id: R-001
+    severity: critical
+    category: security
+    title: "Type-mismatched fields crash on nested access"
+    description: "When archetype or tenure fields are passed as strings instead of dicts, nested dict access (e.g., spec['archetype']['primary']) raises TypeError. Attacker can crash the validator by passing unexpected types."
+    fix: "Safe accessor methods _get_dict, _get_list, _get_str guard all nested dict traversal. Non-dict/non-list values return defaults instead of crashing."
+    fix_commit: "25b9ca2"
+    verified_by: "test_archetype_as_string_fails_gracefully, test_tenure_as_string_fails_gracefully"
+    status: verified
+
+  - id: CQ-01
+    review_id: R-001
+    severity: high
+    category: code_quality
+    title: "Missing JSON Schema integration"
+    description: "Validator had its own validation logic but didn't call jsonschema.validate() against the JSON Schema file. Two validation paths could diverge."
+    fix: "Integrated jsonschema.validate() as the canonical validation path. Spawn spec is validated against schemas/spawn-schema.json first, then archetype/permission checks run."
+    fix_commit: "25b9ca2"
+    status: verified
+
+  - id: CQ-02
+    review_id: R-001
+    severity: high
+    category: code_quality
+    title: "Dependencies in wrong config section"
+    description: "pyyaml and jsonschema were in [project.optional-dependencies] instead of [project.dependencies] — they'd be missing on a bare install."
+    fix: "Moved to [project.dependencies] in pyproject.toml."
+    fix_commit: "25b9ca2"
+    status: verified
+
+  - id: CQ-03
+    review_id: R-001
+    severity: high
+    category: code_quality
+    title: "YAML/JSON parse errors not caught"
+    description: "Malformed YAML input would raise unhandled yaml.YAMLError or json.JSONDecodeError."
+    fix: "Wrapped parse calls in try/except with friendly error messages. YAML errors say which line is malformed."
+    fix_commit: "25b9ca2"
+    status: verified
+
+  - id: CQ-04
+    review_id: R-001
+    severity: high
+    category: code_quality
+    title: "_check_required crashes on non-dict intermediate values"
+    description: "If a required field path goes through a non-dict intermediate, _check_required raises AttributeError on .get()."
+    fix: "Safe accessors propagate through the entire traversal. Non-dict intermediate returns empty/default."
+    fix_commit: "25b9ca2"
+    status: verified
+
+  - id: CQ-05
+    review_id: R-001
+    severity: medium
+    category: code_quality
+    title: "council_seat.eligible not guarded as list"
+    description: "If council_seat.eligible is a string instead of a list, the iteration crashes."
+    fix: "isinstance(list) guard added before iteration. String values produce a validation error instead of crash."
+    fix_commit: "25b9ca2"
+    status: verified
+
+  - id: CQ-06
+    review_id: R-001
+    severity: medium
+    category: code_quality
+    title: "Skills not validated as non-empty list"
+    description: "Skills field accepted empty list, but an agent with no skills is meaningless."
+    fix: "Added non-empty list validation for skills field."
+    fix_commit: "25b9ca2"
+    status: verified
+
+  - id: CQ-07
+    review_id: R-001
+    severity: medium
+    category: code_quality
+    title: "ethics_path not validated as enum"
+    description: "ethics_path field accepted any string — no check against known council names."
+    fix: "Added enum check for ethics_path against KNOWN_COUNCILS."
+    fix_commit: "25b9ca2"
+    status: verified
+
+  - id: CQ-08
+    review_id: R-001
+    severity: medium
+    category: code_quality
+    title: "OVERSIGHT_COUNCILS hardcoded — drifts from COUNCILS"
+    description: "OVERSIGHT_COUNCILS was a separate hardcoded list that could drift from the canonical COUNCILS list."
+    fix: "Derived OVERSIGHT_COUNCILS from COUNCILS programmatically (filter out 'operations')."
+    fix_commit: "25b9ca2"
+    status: verified
+
+  - id: CQ-09
+    review_id: R-001
+    severity: low
+    category: code_quality
+    title: "CLI missing --json output flag"
+    description: "CLI only printed human-readable output. No machine-parseable format for tooling."
+    fix: "Added --json flag to CLI. Validation results output as JSON when flag is set."
+    fix_commit: "25b9ca2"
+    status: verified
+
+  - id: TST-01
+    review_id: R-001
+    severity: high
+    category: testing
+    title: "Insufficient crash-path and edge-case test coverage"
+    description: "Only 19 tests existed. No tests for: non-dict input, type-mismatched fields, oversight councils, renewal, ethics_path validation, empty skills, resources priority, retirement conditions, or council_seat.eligible as string."
+    fix: "Added 13 new tests (32 total) covering all crash paths and edge cases above."
+    fix_commit: "25b9ca2"
+    status: verified
+
+  # ── Review 2: Dev Plan Meta-Review ────────────────────────────────────
+  - id: F-01
+    review_id: R-002
+    severity: high
+    category: documentation
+    title: "Coordinator prompt missing section mapping"
+    description: "The coordinator prompt in requesting-code-review v3.0 didn't explicitly map checklist sections (A→§III, B→§II, etc.) — reviewers had to guess which ARCHITECTURE.md section a check referred to."
+    fix: "Added explicit cross-reference mapping to coordinator prompt: A→§III, B→§II, C→§IV, D→§V, E→§IX, F→§III-B, G→§VII, H→§VIII, I→§VI."
+    fix_commit: "dc46b25"
+    status: verified
+
+  - id: F-02
+    review_id: R-002
+    severity: high
+    category: code_quality
+    title: "No structured JSON output schema for review results"
+    description: "Reviewers returned free-form text. No structured schema for machine-parseable results."
+    fix: "Added structured JSON output schema to coordinator usage instructions."
+    fix_commit: "dc46b25"
+    status: verified
+
+  - id: F-03
+    review_id: R-002
+    severity: medium
+    category: documentation
+    title: "Repo structure heading ambiguous"
+    description: "Repo structure in DEVELOPMENT_PLAN.md didn't clarify it's a target state, not current state."
+    fix: "Clarified heading as 'target state' with note that directories are created on demand."
+    fix_commit: "dc46b25"
+    status: verified
+
+  - id: F-04
+    review_id: R-002
+    severity: medium
+    category: documentation
+    title: "Missing Pleroma Protocol Alignment section in checklist"
+    description: "Architecture compliance checklist had no checks for Pleroma Protocol alignment (§VI in ARCHITECTURE.md)."
+    fix: "Added new §I (Pleroma Protocol Alignment) with 4 checks: I1-I4."
+    fix_commit: "dc46b25"
+    status: verified
+
+  - id: F-05
+    review_id: R-002
+    severity: medium
+    category: documentation
+    title: "Guardrail 7 (transparency defaults) missing from checklist"
+    description: "Architecture compliance checklist §B had 6 guardrails but missed Guardrail 7 (transparency defaults)."
+    fix: "Added B7 — transparency defaults guardrail check."
+    fix_commit: "dc46b25"
+    status: verified
+
+  - id: F-06
+    review_id: R-002
+    severity: medium
+    category: planning
+    title: "Phase API incompatibility risk not documented"
+    description: "DEVELOPMENT_PLAN.md didn't document that Phase 1 modules may need API changes when Phase 2 adds new features, creating integration risk."
+    fix: "Added Phase API incompatibility risk to Risks & Mitigations table."
+    fix_commit: "dc46b25"
+    status: verified
+
+  - id: F-07
+    review_id: R-002
+    severity: medium
+    category: planning
+    title: "BoundaryEnforcer not assigned to an agent in spawning map"
+    description: "Agent Spawning Map in dev plan listed all Phase 1B tasks but didn't assign BoundaryEnforcer to an archetype."
+    fix: "Assigned BoundaryEnforcer to 'Aletheia Sentinel' in the spawning map."
+    fix_commit: "dc46b25"
+    status: verified
+
+  - id: F-09
+    review_id: R-002
+    severity: low
+    category: documentation
+    title: "CLI commands missing from Phase 2 deliverables"
+    description: "Phase 2 deliverables listed voting/deliberation features but no CLI commands for interacting with them."
+    fix: "Added CLI commands (agent-collective propose, council status) to Phase 2 deliverables."
+    fix_commit: "dc46b25"
+    status: verified
+
+  - id: F-11
+    review_id: R-002
+    severity: low
+    category: documentation
+    title: "Missing bridging note between Issue #3 and Phase 2"
+    description: "Issue #3 (Pentacouncil bootstrap) ends with council agents spawned but no note on how Phase 2 takes over."
+    fix: "Added bridging note: 'Phase 2 council automation builds on these spawned agents.'"
+    fix_commit: "dc46b25"
+    status: verified
+
+  - id: F-12
+    review_id: R-002
+    severity: low
+    category: terminology
+    title: "'Fail-closed' terminology ambiguous"
+    description: "Architecture compliance checklist used 'Fail-closed' which has different meanings in security vs. operations contexts."
+    fix: "Replaced 'Fail-closed' with 'Mandatory fails' for clarity."
+    fix_commit: "dc46b25"
+    status: verified
+
+  - id: F-13
+    review_id: R-002
+    severity: low
+    category: planning
+    title: "No concrete agent pool limits in risk mitigation"
+    description: "Risk mitigation mentioned agent pool limits but didn't specify concrete numbers."
+    fix: "Added concrete agent pool limits (max 5 concurrent agents, 3 per council) to risk mitigation."
+    fix_commit: "dc46b25"
+    status: verified
+
+  - id: F-14
+    review_id: R-002
+    severity: medium
+    category: documentation
+    title: "Checklist cross-refs not verified against ARCHITECTURE.md"
+    description: "Cross-references in the checklist (A→§III etc.) were added but not verified for accuracy."
+    fix: "Verified all checklist cross-references against ARCHITECTURE.md. Corrected any mismatches."
+    fix_commit: "dc46b25"
+    status: verified
+
+  - id: F-15
+    review_id: R-002
+    severity: high
+    category: documentation
+    title: "Coordinator prompt missing section mapping context"
+    description: "requesting-code-review v3.0 coordinator prompt lacked the section-to-checklist mapping needed for Agent Collective projects."
+    fix: "Updated coordinator prompt with explicit section mapping context block."
+    fix_commit: "dc46b25"
+    status: verified
+
+  # ── Review 3: Architecture Design Review ───────────────────────────────
+  # Critical fixes (commit 2ea14d3)
+  - id: C-01
+    review_id: R-003
+    severity: critical
+    category: design
+    title: "Explorer archetype is a dangling reference"
+    description: "ARCHITECTURE.md §III listed 'Explorer' as a counterbalance for Guardian, but Explorer was never defined as one of the 12 archetypes. It was a remnant from an earlier draft."
+    fix: "Removed Explorer reference. Guardian counterbalance now uses Seedbearer (for possibility) + Liberator/Saviour (for growth)."
+    fix_commit: "2ea14d3"
+    status: verified
+
+  - id: C-02
+    review_id: R-003
+    severity: critical
+    category: design
+    title: "Steering vs Ethics Council dispute boundary undefined"
+    description: "Both Steering and Ethics Councils could plausibly claim jurisdiction over disputes. No boundary delineation caused ambiguity in scope resolution."
+    fix: "Added explicit boundary note: Steering resolves structural/domain overlap (which council owns what). Ethics resolves operational/value disputes (how a council behaved within its domain). When jurisdiction IS the dispute, Steering resolves scope first, Ethics then adjudicates behavioral concerns."
+    fix_commit: "2ea14d3"
+    status: verified
+
+  - id: C-03
+    review_id: R-003
+    severity: critical
+    category: design
+    title: "Wise-Elder vs Wise-Parent-Elder naming inconsistency"
+    description: "Archetype was defined as 'Wise-Parent-Elder' in the archetype definitions table but referenced as 'Wise-Elder' in 4 other places (council tables, counterbalance pairs)."
+    fix: "Canonical naming unified to 'Wise-Parent-Elder' across all 4 occurrences."
+    fix_commit: "2ea14d3"
+    status: verified
+
+  # High fixes (commit 2ea14d3)
+  - id: H-02
+    review_id: R-003
+    severity: high
+    category: design
+    title: "Epoch not defined in Voting Mechanics"
+    description: "ARCHITECTURE.md §IV uses 'epoch' as the fundamental time unit but doesn't define it — default duration, who sets it, how it's changed."
+    fix: "Added epoch definition: 30-day default, set by Steering Council at start of each epoch, change requires Tier 3 (Steering + Ethics majority), extendable by up to 7 days if Tier 3+ decision in progress."
+    fix_commit: "2ea14d3"
+    status: verified
+
+  # High fixes (commit f170de5 — this session)
+  - id: H-01
+    review_id: R-003
+    severity: high
+    category: design
+    title: "Strategic pivot threshold ambiguity"
+    description: "Cross-Council Dynamics table said '3/5 councils approve' for strategic pivot. Unclear whether this means 3 of all 5 councils or 3 of the 4 involved councils."
+    fix: "Clarified to '3 of 4 involved councils approve (Steering, Ethics, Operations, Technical).'"
+    fix_commit: "f170de5"
+    status: verified
+
+  - id: H-03
+    review_id: R-003
+    severity: high
+    category: design
+    title: "Tier 3 multi-council ambiguity"
+    description: "Tier 3 table said 'Steering + affected council' — ambiguous when multiple councils are affected by a strategic decision."
+    fix: "Changed to 'Steering + all affected councils' with clause: 'if 3+ councils affected, 2/3 majority of affected councils.'"
+    fix_commit: "f170de5"
+    status: verified
+
+  - id: H-04
+    review_id: R-003
+    severity: high
+    category: design
+    title: "Tier 5 trigger mechanism undefined"
+    description: "Tier 5 (Survival) had threshold and timeline but no trigger rule — how does an emergency get declared? Who declares it?"
+    fix: "Added trigger: any council may declare an emergency. Ethics Council must confirm or downgrade to Tier 3 within 1 hour. If Ethics doesn't act, Steering gets a single 30-min extension."
+    fix_commit: "f170de5"
+    status: verified
+
+  - id: H-05
+    review_id: R-003
+    severity: high
+    category: design
+    title: "Vote weighting coefficient ranges undefined"
+    description: "The weighting formula used role_relevance, archetype_fit, and stake without defining their domains. Reviewers couldn't determine valid values."
+    fix: "Added explicit coefficient ranges: role_relevance ∈ {0, 0.5, 1}, archetype_fit ∈ {0, 1}, stake_affected ∈ {0, 0.5, 1} with concrete examples."
+    fix_commit: "f170de5"
+    status: verified
+
+  - id: H-06
+    review_id: R-003
+    severity: high
+    category: design
+    title: "Abstention rule is a single example, not a general algorithm"
+    description: "Abstention section gave one example (3 of 5 abstain, remaining 2 must be unanimous) but no general formula."
+    fix: "Replaced with general formula: threshold = ceil(max(1, required_ratio × total_seats − abstentions)). Added edge case: mass abstention triggers silent consent."
+    fix_commit: "f170de5"
+    status: verified
+
+  - id: H-07
+    review_id: R-003
+    severity: high
+    category: design
+    title: "Context-switch protocol references Gemini2.md without inlining details"
+    description: "Archetype Deployment Rules said 'Using Gemini2.md's shift pattern' but didn't specify frequency, cooldown, duration, or trigger conditions."
+    fix: "Inlined full protocol: max 2 shifts per 24h, 4h cooldown, 72h max duration, 5 trigger conditions mapped to target archetypes."
+    fix_commit: "f170de5"
+    status: verified
+
+  - id: H-08
+    review_id: R-003
+    severity: high
+    category: design
+    title: "Inter-agent security protocol missing key rotation, encryption, recovery, downgrade protection, attestation"
+    description: "§IX listed 8 requirements but lacked: key rotation schedule, optional message encryption, key recovery protocol, downgrade protection, and agent attestation."
+    fix: "Added 5 new requirements to §IX: key rotation (per-epoch + incident), message encryption (Ed25519+X25519), key recovery (Tier 3 for total loss), downgrade protection (protocol_version header), attestation (signed spawn_spec_hash)."
+    fix_commit: "f170de5"
+    status: verified
+
+  - id: H-09
+    review_id: R-003
+    severity: high
+    category: design
+    title: "Kill switch lacks guardrails against abuse"
+    description: "Kill switch listed as 'any council can terminate any agent's communication channel' with no guardrails — no auto-logging, no Ethics review, no self-kill protection."
+    fix: "Added 5 guardrails: (1) auto-logged with council identity + rationale, (2) Ethics review within 1h, (3) no self-kill, (4) 24h auto-restore, (5) 3+ kills per epoch triggers investigation."
+    fix_commit: "f170de5"
+    status: verified
+
+  - id: H-10
+    review_id: R-003
+    severity: high
+    category: design
+    title: "Recursive spawning scope mismatch between §V and §IX"
+    description: "§V (Spawning Protocol) says agents submit spawn requests. §IX says 'agents cannot spawn other agents.' The tension between request vs. autonomous spawn was unresolved."
+    fix: "Clarified: agents may submit spawn *requests* to Operations Council, but no agent may autonomously spawn another agent. Updated both §V and §IX to match."
+    fix_commit: "f170de5"
+    status: verified
+
+  # Missing sections (commit f170de5 — this session)
+  - id: MS-01
+    review_id: R-003
+    severity: medium
+    category: design
+    title: "Missing section: Failure modes"
+    description: "ARCHITECTURE.md had no failure mode documentation. No guidance on what happens during Tier 4 deadlock, split-brain, council capture, quorum failure, protocol version drift, or key compromise."
+    fix: "Added §X.1 (Failure Modes & Recovery) with 6 concrete failure modes, detection methods, and recovery procedures."
+    fix_commit: "f170de5"
+    status: verified
+
+  - id: MS-02
+    review_id: R-003
+    severity: medium
+    category: design
+    title: "Missing section: Human oversight role"
+    description: "The architecture describes autonomous agent governance but doesn't specify the human's role — veto powers, override mechanisms, graduated autonomy."
+    fix: "Added §X.2 (Human Oversight Role) defining 5 reserved powers (veto, pardon, dissolve, emergency override, phase gate) with graduated autonomy from Phase 1→4."
+    fix_commit: "f170de5"
+    status: verified
+
+  - id: MS-03
+    review_id: R-003
+    severity: medium
+    category: design
+    title: "Missing section: Inter-agent communication protocol"
+    description: "Architecture references inter-agent messaging but doesn't define the communication layers, message format, routing rules, or authorization model."
+    fix: "Added §X.3 (Inter-Agent Communication Protocol) with 5 layers (signaling, direct messaging, broadcast, proposals, heartbeat), message format, and communication rules."
+    fix_commit: "f170de5"
+    status: verified
+
+  - id: MS-04
+    review_id: R-003
+    severity: medium
+    category: design
+    title: "Missing section: Resource model"
+    description: "No documentation of compute, bandwidth, storage, or memory allocation models. Operations Council can't allocate resources without defined units."
+    fix: "Added §X.4 (Resource Model) with 5 resource types (compute, concurrent tasks, gateway bandwidth, storage, memory), allocation models, and priority tiers."
+    fix_commit: "f170de5"
+    status: verified
+
+  - id: MS-05
+    review_id: R-003
+    severity: medium
+    category: design
+    title: "Missing section: Data governance"
+    description: "No policies for data provenance, retention, access control, anonymization, portability, or regulatory compliance."
+    fix: "Added §X.5 (Data Governance) with 6 domains (provenance, retention, access control, anonymization, portability, compliance) and concrete implementation rules."
+    fix_commit: "f170de5"
+    status: verified

@@ -1,8 +1,9 @@
 # Agent Collective — Architecture Compliance Review Checklist
 
 > **Purpose:** Domain-specific invariants for code review, bridging generic multi-specialist review with project-specific rules from ARCHITECTURE.md.
-> **Use with:** `requesting-code-review` (v3.0+) — coordinator agent checks these against each diff.
+> **Use with:** `requesting-code-review` (v3.1+) — coordinator agent checks these against each diff.
 > **Cross-ref:** Each section maps to ARCHITECTURE.md as: A→§III, B→§II, C→§IV, D→§V, E→§IX, F→§III-B, G→§VII, H→§VIII, I→§VI.
+> **Findings:** All findings are tracked in `reviews/registry.yaml` with severity, status, and fix commit. Per-review narratives in `reviews/phase-{N}/`.
 
 ---
 

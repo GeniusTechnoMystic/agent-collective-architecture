@@ -3,7 +3,11 @@ name = "agent-collective-architecture"
 version = "0.1.0"
 description = "Self-orchestrating networked organization of AI agents"
 requires-python = ">=3.11"
-dependencies = ["pyyaml>=6", "jsonschema>=4"]
+dependencies = [
+    "pyyaml>=6",
+    "jsonschema>=4",
+    "pynacl>=1.6.2",
+]
 
 [project.scripts]
 agent-collective = "agent_collective.cli:main"
