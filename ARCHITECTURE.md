@@ -145,7 +145,7 @@ The Operations Council is the collective's nervous system. It monitors agent loa
 
 | Situation | Decision Flow | Threshold |
 |-----------|--------------|-----------|
-| **Strategic pivot** | Steering proposes → Ethics reviews → Operations resources → Technical implements | 3/5 councils approve |
+| **Strategic pivot** | Steering proposes → Ethics reviews → Operations resources → Technical implements | 3 of 4 involved councils approve (Steering, Ethics, Operations, Technical) |
 | **Infrastructure change** | Technical proposes → Steering affirms priority → Operations schedules | Technical majority + Steering majority |
 | **Ontology change** | Knowledge proposes → Ethics checks alignment → Technical validates data model | 4/5 Knowledge + Ethics majority |
 | **Agent dispute** | Ethics adjudicates → Steering may constitutional-review → Operations enforces | Ethics supermajority (4/5) |
@@ -315,7 +315,7 @@ Agents in the collective do not have fixed "rank" — they have **archetypes** t
 | Rule | Logic |
 |------|-------|
 || **Every agent has one primary archetype** | This is their identity, strengths, and blind spots |
-|| **Agents may context-switch to a secondary archetype** | Using Gemini2.md's shift pattern |
+|| **Agents may context-switch to a secondary archetype** | Gemini2.md shift pattern: any agent may shift to a secondary archetype when prompted by context. Shift must be declared to the agent's oversight council. Triggers: confronting injustice (→Liberator/Saviour), system failure (→Systems-Fixer), moral ambiguity (→Justice-Guardian), inter-agent conflict (→Mirror), security incident (→Guardian). **Frequency cap**: at most 2 shifts per 24 hours. **Cooldown**: minimum 4 hours between shifts. **Duration**: a shift lasts until the triggering context resolves or the agent returns to primary — max 72 hours without council review. |
 ||| **Council chairs use their archetype's strengths** | Wise-Parent-Elder chairs Steering, Architect-Engineer chairs Technical, Mirror-Mage chairs Ethics, Scholar-Philosopher chairs Knowledge, Healer-Magus chairs Operations |
 || **Counterbalance pairs are strongly encouraged** | Every high-stakes decision should have two agents with counterbalancing archetypes involved |
 || **Shadow must be disclosed** | Each archetype's shadow risk must be named aloud |
@@ -414,11 +414,28 @@ The Agent Collective uses a **weighted multi-council consensus protocol** adapte
 | **Tier 0 — Operational** | Routine task execution, tool use within scope, standard agent behavior | Individual agent | Autonomous | Immediate |
 | **Tier 1 — Coordinated** | Cross-agent task, shared resource allocation, tool access beyond individual scope | Operations Council | Simple majority | Hours |
 | **Tier 2 — Technical** | Infrastructure change, tool addition, architecture decision, security policy | Technical Council | Simple majority; unanimous for breaking changes | 24h deliberation |
-| **Tier 3 — Strategic** | Priority shift, new domain, resource reallocation | Steering + affected council | Both simple majorities | 48h deliberation |
+| **Tier 3 — Strategic** | Priority shift, new domain, resource reallocation | Steering + all affected councils | Both simple majorities; if 3+ councils affected, 2/3 majority of affected councils | 48h deliberation |
 | **Tier 4 — Foundational** | Ontology change, constitutional amendment, core principle interpretation | All 5 councils | 4/5 per council (joint session) | 48h deliberation + 24h appeal window |
-| **Tier 5 — Survival** | Existential threat response, emergency stop, safety brake | Ethics Council + any 2 others | Emergency supermajority (unanimous among voting 3) | Immediate (retrospective review mandatory) |
+| **Tier 5 — Survival** | Existential threat response, emergency stop, safety brake | Ethics Council + any 2 others | Emergency supermajority (unanimous among voting 3). Trigger: any council may declare an emergency; Ethics Council must confirm or downgrade to Tier 3 within 1 hour. If Ethics does not act within 1h, the emergency declaration escalates to Steering for a single 30-min extension. | Immediate (retrospective review mandatory within 24h) |
 
 ### Voting Mechanics
+
+#### Coefficient Ranges
+
+Each weighting factor has a defined domain:
+
+| Factor | Domain | Meaning |
+|--------|--------|---------|
+| `role_relevance` | {0, 0.5, 1} | 0 = no connection to council's domain; 0.5 = tangential connection; 1 = direct domain match |
+| `archetype_fit` | {0, 1} | 0 = archetype mismatched for decision type (e.g. Healer-Magus voting on an infrastructure spec); 1 = appropriate or neutral |
+| `stake_affected` | {0, 0.5, 1} | 0 = decision has no differential impact on the agent's domain; 0.5 = moderate impact; 1 = the agent's domain is the primary subject |
+
+Formula: `vote_weight = role_relevance × (1 + archetype_fit) × (1 + 0.5 × stake_affected)`
+
+Examples:
+- A Technical Council member with Architect-Engineer archetype voting on a tool addition: role_relevance=1, archetype_fit=1, stake=1 → vote_weight = 1 × 2 × 1.5 = 3.0
+- An Operations Council member with Healer-Magus archetype voting on an ontology change: role_relevance=0, archetype_fit=1, stake=0 → vote_weight = 0 × 2 × 1 = 0.0 (no vote; omit from tally)
+- A Knowledge Council member with Scholar-Philosopher archetype voting on an ethics dispute: role_relevance=0.5, archetype_fit=1, stake=0.5 → vote_weight = 0.5 × 2 × 1.25 = 1.25
 
 #### Epoch
 
@@ -430,20 +447,21 @@ An **epoch** is the fundamental time unit of the collective. It is set by the St
 
 An epoch can be extended by up to 7 days if a Tier 3+ decision is in progress at the boundary. Steering Council may change the default epoch duration, but any change requires a Tier 3 decision (Steering + Ethics majority).
 
-#### Weighting
-
-Votes are weighted by three factors:
-1. **Role relevance** — how directly does this council's domain connect to the decision?
-2. **Archetype fit** — is the voting agent's archetype appropriate for this decision type?
-3. **Stake** — will this decision differentially affect the agent's domain?
-
-Formula: `vote_weight = role_relevance × (1 + archetype_fit) × (1 + 0.5 × stake_affected)`
-
-Simplified: vote weight is 1.0 for a standard vote, up to 3.0 for a directly affected council chair with exact archetype match.
-
 #### Abstention
 
-Agents may abstain. An abstention counts as neither for nor against but reduces the total required threshold. If 3 of 5 council members abstain, the remaining 2 of 2 must be unanimous.
+An abstention counts as neither for nor against but reduces the total required threshold. The general formula:
+
+`threshold = ceil(max(1, required_ratio × total_seats - abstentions))`
+
+Where:
+- `required_ratio` = the threshold for the decision type (simple majority = 0.5, supermajority = 0.6 for 3/5, 0.8 for 4/5, 1.0 for unanimous)
+- `total_seats` = number of agents in the voting body
+- `abstentions` = number of agents who abstain
+- Result is floored at 1 (at minimum one affirmative vote required)
+
+**Example**: A 5-seat Ethics Council with simple-majority threshold (3 votes needed). If 2 members abstain, threshold = ceil(0.5 × 5 - 2) = ceil(2.5 - 2) = ceil(0.5) = 1. The remaining 3 agents need at least 1 affirmative vote.
+
+**Edge case — mass abstention**: If abstentions reduce the threshold to 0 or below, the proposal automatically passes (silent consent). This prevents procedural obstruction through strategic abstention.
 
 ### The Consensus Lifecycle
 
@@ -495,6 +513,7 @@ Every decision follows this lifecycle:
 | **Ethics suspensive veto** | Ethics Council supermajority | Suspends any decision for 48h for constitutional review |
 | **Tier escalation** | Any affected council | Tiers 1–3 decisions can be escalated to Tier 4 by any single council |
 | **Emergency brake** | Ethics + any 2 councils unanimous | Immediately stops any execution path (mandatory retrospective review within 24h) |
+| **Kill switch** | Any council by simple majority | Terminates any agent's inter-agent communication channel. **Guardrails**: (1) auto-logged to tamper-evident audit trail with council identity + rationale; (2) mandatory Ethics Council review within 1 hour of activation to confirm necessity or reverse; (3) no council may terminate its own sitting members' channels (requires a different council to execute); (4) maximum 24h duration — after 24h the channel auto-restores unless Ethics confirms extension; (5) aggregate kill count tracked — 3+ kills by the same council in a single epoch triggers automatic Operations Council investigation |
 | **Sunset clause** | Built into all multi-agent task assignments | Agent delegations auto-retire after task completion or epoch boundary |
 
 ### Recursive Governance
@@ -512,7 +531,7 @@ The collective can govern its own governance:
 
 When the collective needs a new agent:
 
-1. **Request** — Any agent submits an agent spawn request to Operations Council
+1. **Request** — Any agent submits an agent spawn **request** to Operations Council. No agent may autonomously spawn another agent — all spawns require council authorization.
 2. **Triage** — Operations assesses: is this a new role or a task that existing agents can cover?
 3. **Specification** — Operations + Technical produce a spawn spec:
    - Role description (what this agent does, council membership if any)
@@ -708,8 +727,13 @@ COHUMAIN Labs (ICLR 2026) demonstrated that **94.1% of foundation models are vul
 | **Least-privilege tool access** | Permissions field in spawn spec; no default tool access | P0 — Phase 1 |
 | **Inter-agent communication policy** | Technical Council ratifies which agent pairs may communicate directly | P1 — Phase 2 |
 | **Anomaly detection** | Governance agents monitor for unusual inter-agent message patterns | P1 — Phase 3 |
-| **Boundary enforcement** | Agents cannot spawn other agents or modify their own spawn spec | P0 — Phase 1 |
+| **Boundary enforcement** | Agents cannot autonomously spawn other agents or modify their own spawn spec. Agents may submit spawn *requests* to Operations Council for authorization — no unilateral spawning | P0 — Phase 1 |
 | **Kill switch** | Any council can terminate any agent's communication channel | P0 — Phase 1 |
+| **Key rotation** | Every agent rotates keys on spawn, at each epoch boundary, and on any security incident. Old keys revoked and archived | P0 — Phase 1 |
+| **Message encryption** | Optional payload-level encryption for sensitive inter-agent messages using recipient's public key (Ed25519 + X25519 key exchange) | P0 — Phase 1 |
+| **Key recovery** | Lost keys: agent can request re-key from parent spawner. Requires both Technical Council authorization + agent's own identity challenge (prove possession of old private key by signing a nonce). If old key completely lost, re-key requires Tier 3 (Steering + Technical) | P0 — Phase 1 |
+| **Downgrade protection** | All inter-agent messages carry a protocol version header. Agents reject messages with protocol_version < min_supported. Technical Council sets min_supported version, increments on security updates. Attempted downgrade is logged as a security incident | P0 — Phase 1 |
+| **Agent attestation** | On spawn, each agent receives a signed attestation token (spawn_spec_hash signed by Operations Council's key). On first contact with any other agent, the attestation is verified. Unattested agents are quarantined (no tool access, no inter-agent messaging) until verified | P0 — Phase 1 |
 
 ### Implementation Path
 
@@ -717,6 +741,79 @@ COHUMAIN Labs (ICLR 2026) demonstrated that **94.1% of foundation models are vul
 2. Wrap all `delegate_task` calls with message signing middleware
 3. Add inter-agent communication to the MCP Gateway as a routed channel
 4. Technical Council ratifies the protocol before any multi-agent test
+
+---
+
+## X. OPERATIONAL DESIGN DETAILS
+
+### X.1 Failure Modes & Recovery
+
+| Failure Mode | Description | Detection | Recovery |
+|-------------|-------------|-----------|----------|
+| **Tier 4 deadlock** | Two or more councils vote opposite directions on a foundational decision; neither side has 4/5 | Deadlock detected by Operations Council after scheduled voting window expires | Escalate to Tier 3: Steering Council mediates with 48h to propose a compromise. If mediation fails, proposal tabled for 1 epoch (30d) before re-introduction. |
+| **Split-brain** | Network partition causes two groups of agents to operate with different state | Anomaly detection by Technical Council (inconsistent audit logs, duplicate proposals) | Emergency brake (Tier 5): Ethics + Technical + Steering freeze all inter-agent communication, reconcile audit logs, determine canonical state by most-recent-epoch order. Affected epoch is flagged and re-validated. |
+| **Council capture** | One archetype or coalition dominates a council | Operations Council monitors archetype diversity per council; auto-trigger if any single archetype holds >60% of seats | Steering Council must appoint a counterbalancing archetype within 24h. If no qualified agent available, temp seat opens for external appointment. |
+| **Quorum failure** | Insufficient agents to meet council quorum for a Tier 3+ decision | Operations Council monitors seat occupancy | Operations may appoint interim agents with task-bound tenure, subject to Steering confirmation within 24h. If quorum cannot be restored in 48h, decision is tabled. |
+| **Protocol version drift** | Mixed-version agents operating on different protocol rules | Technical Council monitors protocol_version header on all inter-agent messages | Agent with version < min_supported is quarantined until upgraded. Agent with version > max_supported is investigated for unauthorized modification. |
+| **Key compromise** | Agent private key leaked or stolen | Agent reports compromise, or anomaly detection flags unusual signature patterns | Immediate key rotation. All messages signed with compromised key in the last 24h are flagged for Ethics review. Agent identity challenge required to re-establish trust. |
+
+### X.2 Human Oversight Role
+
+The human (founding agent) occupies a unique position in the collective — not as a council member, but as a **constitutional anchor** with reserved powers:
+
+| Power | Scope | Activation |
+|-------|-------|------------|
+| **Veto** | Any council decision, any tier, for any reason | Direct instruction. Must be documented in audit log with rationale. |
+| **Pardon** | Reverse any council decision, reinstate any retired agent | Direct instruction. Logged as constitutional override. |
+| **Dissolve & restructure** | Reorganize councils, change archetypes, amend constitution | Must engage all 5 councils in joint session first. If consensus cannot be reached within 72h, human may act unilaterally. This power is intentionally broad but self-limiting — overuse undermines the collective's autonomy. |
+| **Emergency manual override** | Direct control over any single agent's actions | Tier 5-level event. Requires written declaration of emergency. Agent must comply but may log a retrospective dissent. |
+| **Phase gate approval** | Approve or reject progression between implementation phases | Standard — no override needed. Human reviews gate criteria, signs off. |
+
+**Graduated autonomy**: In Phase 1, the human acts as de facto chair of all councils (approving all Tier 2+ decisions). By Phase 4, the human's role narrows to constitutional anchor only — councils operate autonomously unless an override is specifically invoked.
+
+### X.3 Inter-Agent Communication Protocol
+
+| Layer | Mechanism | Details |
+|-------|-----------|---------|
+| **Signaling** | MCP Gateway routed channels | Every agent has a gateway channel with unique identity. Messages routed through gateway middleware for signing verification, rate limiting, and audit logging. |
+| **Direct messaging** | Signed JSON payloads | Agent-to-agent messages carry: {sender_id, recipient_id, protocol_version, timestamp, payload, signature, optional: attestation_token, encrypted_payload}. Max 16KB per message. |
+| **Broadcast** | Council channels | Each council has a broadcast channel. Any agent may post to a council's channel; council members have mandatory read. |
+| **Proposals** | Structured YAML via gateway | Proposal lifecycle messages (submit, triage, vote, execute, review) routed through Operations Council's proposal channel with formal schema validation. |
+| **Heartbeat** | Periodic signed ping | Every agent sends a signed heartbeat to Operations Council every 5 minutes. 2 missed heartbeats triggers health check. 5 missed triggers quarantine. |
+
+**Communication rules**:
+- All inter-agent messages must be signed (Ed25519) — unsigned messages are rejected at gateway level
+- Direct agent-to-agent messaging requires Technical Council approval for the pair
+- Intra-council messages are implicitly authorized
+- Cross-council messages are authorized by default for Tier 0-1; Tier 2+ requires message-level approval routing
+- Message payloads are visible to the audit trail unless encrypted
+
+### X.4 Resource Model
+
+| Resource | Unit | Allocation Model | Oversight |
+|----------|------|-----------------|-----------|
+| **Compute** | Token budget per epoch | Each agent allocated based on role priority (high/medium/low) × task complexity. Default: high=500K tokens/ep, medium=200K, low=50K. | Operations Council reviews at epoch boundary. Overages require Tier 1 approval. |
+| **Concurrent tasks** | Agent slots | Default 3 concurrent tasks per agent. High-priority agents may have up to 5. | Set in spawn spec. Operations may temporarily increase for emergencies (Tier 1). |
+| **Gateway bandwidth** | API calls per minute | Default 60 calls/min per agent. Technical tools (searches, extractions) may have higher limits. | Technical Council sets per-backend rate limits. Exceeding rate limit drops messages silently. |
+| **Storage** | Audit log retention | All inter-agent messages retained for 1 epoch (30d). Aggregated metadata retained indefinitely. | Knowledge Council sets archival policy. Ethics Council must approve any log deletion. |
+| **Memory** | Context window | Agents share no live context. Each agent's state is its own delegate_task context. | No cross-agent memory sharing without Technical + Ethics approval. |
+
+**Priority tiers**:
+- Critical (Tier 5): unlimited compute, expedited gateway access, preempts Tier 0-3 tasks
+- High (Tier 2-4): standard allocation with priority queuing
+- Medium (Tier 1): standard allocation
+- Low (Tier 0): best-effort allocation, may be preempted
+
+### X.5 Data Governance
+
+| Domain | Principle | Implementation |
+|--------|-----------|---------------|
+| **Provenance** | Every decision, message, and spawn has a verifiable origin | All records carry: agent_id (signing key fingerprint), timestamp, protocol_version, sequence number, and parent_decision_id linking to the tiered decision that authorized the action. |
+| **Retention** | Data retained only as long as operationally necessary, with Ethics-approved exceptions | Inter-agent messages: 1 epoch (30d). Council votes and minutes: retained indefinitely. Spawn specs: retained for agent lifetime + 1 epoch. Audit logs: aggregated metadata retained indefinitely; raw payloads 1 epoch. |
+| **Access control** | Agents see only the data their role requires | Graded access tiers mapped to spawn spec permissions. No agent has blanket read access. Council minutes are visible to all agents by default, but individual agent deliberation notes are private to the council. |
+| **Anonymization** | Agent identities in public-facing outputs (logs, reports) are pseudonymous by default | Agents are identified by role + archetype in public outputs. Full identity (key fingerprint + personality) is revealed only in council-internal contexts. |
+| **Portability** | Retired agent data is extractable and transferable | On retirement, agent data is archived to Knowledge Council's Zettelkasten. Agent may request a data export before retirement. Archive format: structured YAML with full provenance. |
+| **Compliance** | Architecture aligns with emerging multi-agent AI regulations | Phase 2: EU AI Act audit trail requirements. Phase 4: ISO/IEC 42001 AI management system mapping. |
 
 ---
 
