@@ -39,6 +39,15 @@ reviews:
     fix_commit: "2ea14d3 + f170de5"
     findings_count: 19
 
+  - id: R-004
+    title: "Phase 1B — Master Test Plan Review"
+    date: 2026-07-21
+    reviewer_archetypes: ["Aletheia Sentinel", "Systems-Fixer"]
+    reviewer_personas: ["qa-engineer", "code-red-team"]
+    scope: "tests/test-plans/master-test-plan.md"
+    result: "CONDITIONAL → FIXED"
+    findings_count: 9
+
 findings:
   # ── Review 1: Security & Quality ──────────────────────────────────────
   - id: SEC-01
@@ -477,4 +486,13 @@ findings:
     description: "No policies for data provenance, retention, access control, anonymization, portability, or regulatory compliance."
     fix: "Added §X.5 (Data Governance) with 6 domains (provenance, retention, access control, anonymization, portability, compliance) and concrete implementation rules."
     fix_commit: "f170de5"
+    status: verified
+
+  - id: R-004
+    review_id: R-004
+    severity: n/a
+    category: review
+    title: "Master Test Plan Review — TP-001"
+    description: "Adversarial review of the Phase 1 Master Test Plan. 9 findings: 2 High (integration boundary tests undefined, decision table gap), 3 Medium (property-based invariants, signature format spec, risk traceability), 2 Low (audit negative tests, regression escalation), 2 Info (dependency install step, review checklist)."
+    fix: "All 9 findings applied to test plan: added TC-INT-06→09 boundary tests, TC-BND-09 council spawn test, property-based invariants section, TC-DEL-02 signature format spec, TC-AUD-20/21 negative path tests, risk traceability backfill, regression escalation strategy, dependency install step, review checklist."
     status: verified
