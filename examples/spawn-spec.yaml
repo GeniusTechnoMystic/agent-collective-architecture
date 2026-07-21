@@ -1,8 +1,3 @@
-# Agent spawn specification
-
-# This is the YAML template for spawning a new agent into the collective.
-# Every spawned agent must have a complete spec ratified by the relevant council.
-
 agent_spawn:
   role: "Ontology Auditor"
   archetype:
@@ -26,12 +21,12 @@ agent_spawn:
     priority: "medium"
     max_concurrent_tasks: 3
   tenure:
-    type: "epoch"           # task | epoch | indefinite
-    duration: 14            # days
-    renewal: "manual"       # automatic | manual | none
+    type: "epoch"
+    duration: 14
+    renewal: "manual"
   council_seat:
     eligible: ["knowledge"]
-    assigned: "knowledge"   # optional, skip for non-council agents
+    assigned: "knowledge"
   accountability:
     oversight: "knowledge-council"
     ethics_path: "ethics-council"

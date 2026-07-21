@@ -1,0 +1,17 @@
+[project]
+name = "agent-collective-architecture"
+version = "0.1.0"
+description = "Self-orchestrating networked organization of AI agents"
+requires-python = ">=3.11"
+
+[project.scripts]
+agent-collective = "agent_collective.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8", "pyyaml>=6", "jsonschema>=4"]
+
+[tool.uv.sources]
+agent-collective-architecture = { workspace = true }
+
+[tool.uv.workspace]
+members = []

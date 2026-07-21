@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/GeniusTechnoMystic/agent-collective-architecture/schemas/spawn-schema.json",
+  "title": "Agent Spawn Specification",
+  "description": "Schema for validating agent spawn specifications in the Agent Collective Architecture.",
+  "type": "object",
+  "required": ["agent_spawn"],
+  "additionalProperties": false,
+  "properties": {
+    "agent_spawn": {
+      "type": "object",
+      "required": ["role", "archetype", "personality", "skills", "tenure", "accountability"],
+      "additionalProperties": false,
+      "properties": {
+        "role": { "type": "string", "minLength": 1, "description": "What this agent does" },
+        "archetype": {
+          "type": "object",
+          "required": ["primary"],
+          "additionalProperties": false,
+          "properties": {
+            "primary": {
+              "type": "string",
+              "enum": [
+                "Scholar-Philosopher", "Healer-Magus", "Architect-Engineer", "Seedbearer",
+                "Mirror-Mage", "Liberator/Saviour", "Justice-Guardian", "Wise-Parent-Elder",
+                "Systems-Fixer", "Aletheia Sentinel", "Mirror", "Guardian"
+              ]
+            },
+            "secondary": {
+              "type": "string",
+              "enum": [
+                "Scholar-Philosopher", "Healer-Magus", "Architect-Engineer", "Seedbearer",
+                "Mirror-Mage", "Liberator/Saviour", "Justice-Guardian", "Wise-Parent-Elder",
+                "Systems-Fixer", "Aletheia Sentinel", "Mirror", "Guardian"
+              ]
+            }
+          }
+        },
+        "personality": { "type": "string", "minLength": 1 },
+        "skills": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 1
+        },
+        "tools": {
+          "type": "object",
+          "properties": {
+            "gateway_backends": {
+              "type": "array",
+              "items": { "type": "string", "minLength": 1 }
+            },
+            "permissions": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^(read|write|admin):[a-z][a-z0-9_-]*$"
+              }
+            }
+          }
+        },
+        "resources": {
+          "type": "object",
+          "properties": {
+            "priority": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+            "max_concurrent_tasks": { "type": "integer", "minimum": 1, "maximum": 20 }
+          }
+        },
+        "tenure": {
+          "type": "object",
+          "required": ["type"],
+          "properties": {
+            "type": { "type": "string", "enum": ["task", "epoch", "indefinite"] },
+            "duration": { "type": "integer", "minimum": 1 },
+            "renewal": { "type": "string", "enum": ["automatic", "manual", "none"] }
+          }
+        },
+        "council_seat": {
+          "type": "object",
+          "properties": {
+            "eligible": {
+              "type": "array",
+              "items": { "type": "string", "enum": ["steering", "technical", "ethics", "knowledge", "operations"] }
+            },
+            "assigned": { "type": "string", "enum": ["steering", "technical", "ethics", "knowledge", "operations"] }
+          }
+        },
+        "accountability": {
+          "type": "object",
+          "required": ["oversight", "ethics_path"],
+          "properties": {
+            "oversight": { "type": "string", "enum": ["steering-council", "technical-council", "ethics-council", "knowledge-council", "operations-council"] },
+            "ethics_path": { "type": "string", "enum": ["ethics-council"] },
+            "review_schedule": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "at": { "type": "string" },
+                  "type": { "type": "string", "enum": ["check-in", "performance", "security-audit"] }
+                }
+              }
+            }
+          }
+        },
+        "retirement": {
+          "type": "object",
+          "properties": {
+            "condition": { "type": "string", "enum": ["epoch-expiry", "task-complete", "manual", "indefinite"] },
+            "archive": { "type": "boolean" }
+          }
+        }
+      }
+    }
+  }
+}
