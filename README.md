@@ -1,6 +1,12 @@
 # Agent Collective Architecture
 
-A **self-orchestrating networked organization of AI agents** — agents dynamically spawn with required personalities, skills, and role descriptions to form a networked organization with consensus-based governance.
+> **Purpose:** Design and build a self-orchestrating networked organization of AI agents
+> with Pentacouncil governance, 12 archetypes, 6-tier consensus protocol.
+> **Location:** `~/workspace/github/agent-collective-architecture/`
+> **GitHub:** https://github.com/GeniusTechnoMystic/agent-collective-architecture
+> **Kanban:** `hermes kanban ls --project agent-collective` (default board, project-filtered)
+> **Design doc:** `~/.hermes/plans/agent-collective-architecture.md`
+> **Dev plan:** `DEVELOPMENT_PLAN.md`
 
 **Phase:** 0 (Design/Prototype) | **Status:** Blueprint — not yet deployable
 
@@ -23,11 +29,21 @@ A **self-orchestrating networked organization of AI agents** — agents dynamica
 | **Phase 3** | Full Pentacouncil, autonomous spawning, archetype switching | ❌ Not started |
 | **Phase 4** | Recursive governance, protocol amendments, ISO/IEC 42001 mapping | ❌ Not started |
 
-## Key Documents
+## Contents
 
-- `ARCHITECTURE.md` — Full 713-line design specification (9 sections)
-- `examples/spawn-spec.yaml` — Agent spawn specification template
-- `LICENSE` — MIT License
+| Path | Description |
+|------|-------------|
+| `ARCHITECTURE.md` | Full 713-line design specification (9 sections + 3 appendices) |
+| `DEVELOPMENT_PLAN.md` | Full dev plan: processes, deliverables, agent roles, execution order |
+| `examples/spawn-spec.yaml` | Agent spawn specification template |
+| `LICENSE` | MIT License |
+
+## Related Projects
+
+- [Pleroma Protocol](https://github.com/GeniusTechnoMystic/pleroma-protocol) (`~/workspace/github/pleroma-protocol/`) — upstream governance specification this architecture implements
+- [Hermes Agent](https://hermes-agent.nousresearch.com) — runtime environment (delegate_task, MCP Gateway, skills)
+- [PROJECT_INDEX.md](https://github.com/GeniusTechnoMystic/agent-collective-architecture/blob/main/PROJECT_INDEX.md) — workspace master project catalog
+- [PROJECT_STATUS.md](https://github.com/GeniusTechnoMystic/agent-collective-architecture/blob/main/PROJECT_STATUS.md) — workspace health dashboard
 
 ## External Validation
 
