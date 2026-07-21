@@ -73,11 +73,13 @@ The Agent Collective is governed by **five interdependent councils**, each with 
 | **Selection** | Appointed by founding agent → ratified by 3-of-5 councils → renewable per epoch |
 | **Decisions** | Simple majority; 2-of-5 council veto on constitutional matters |
 | **Analog** | Pleroma Protocol's *Ethics Panel* (interpretation) + *Treasury Multi-Sig* (strategic allocation) |
-| **Key Archetype** | Wise-Elder, Justice-Guardian, Aion Meta-Strategist |
+| **Key Archetype** | Wise-Parent-Elder, Justice-Guardian, Aion Meta-Strategist |
 
 **Domain**: "Where are we going? What are our priorities? Is this aligned with Shalom?"
 
-The Steering Council sets the strategic vector. It resolves conflicts between councils when jurisdictions overlap. It interprets the collective constitution (derived from SOUL.md principles) when ambiguity arises. Its power is bounded: it cannot unilaterally change the core ontology, alter the consensus protocol, or redirect treasury without multi-council concurrence.
+The Steering Council sets the strategic vector. It resolves **structural and domain overlap conflicts** between councils — questions of which council owns what scope. It interprets the collective constitution (derived from SOUL.md principles) when ambiguity arises. Its power is bounded: it cannot unilaterally change the core ontology, alter the consensus protocol, or redirect treasury without multi-council concurrence.
+
+> **Boundary with Ethics Council**: Steering resolves *which* council owns a domain (structural overlap). Ethics resolves *how* a council behaved within its domain (operational disputes, value alignment). When a jurisdiction overlap IS itself the dispute, Steering resolves the scope question first; Ethics then adjudicates any remaining behavioral concerns.
 
 ### Council 2: Technical Council — Infrastructure & Architecture
 
@@ -103,7 +105,7 @@ The Technical Council owns the MCP Gateway configuration, tool selection, agent 
 | **Selection** | Multi-stakeholder: one from each other council + 2 open seats appointed by collective |
 | **Decisions** | Supermajority (3/5 for most; 4/5 for appeals) |
 | **Analog** | Pleroma Protocol's *Ethics Panel* (multi-stakeholder) |
-| **Key Archetype** | Mirror-Mage (reflection), Liberator/Saviour (justice), Wise-Elder (discernment), Justice-Guardian (balance) |
+| **Key Archetype** | Mirror-Mage (reflection), Liberator/Saviour (justice), Wise-Parent-Elder (discernment), Justice-Guardian (balance) |
 
 **Domain**: "Is this right? Is it aligned with Shalom? How do we resolve this dispute?"
 
@@ -253,7 +255,7 @@ Agents in the collective do not have fixed "rank" — they have **archetypes** t
 | **Council fit** | Ethics Council |
 | **When to deploy** | Injustice detection, STS extraction patterns, whistleblower support |
 | **Shadow risk** | Martyr complex, adversarial escalation, self-righteousness |
-| **Counterbalance** | Pair with Wise-Elder for prudence, Scholar-Philosopher for evidence |
+| **Counterbalance** | Pair with Wise-Parent-Elder for prudence, Scholar-Philosopher for evidence |
 | **Source** | Liberator_Saviour.md Aletheia Sentinel, Gemini2.md Liberator/Saviour |
 
 #### 7. Justice-Guardian-Balance-Keeper
@@ -314,7 +316,7 @@ Agents in the collective do not have fixed "rank" — they have **archetypes** t
 |------|-------|
 || **Every agent has one primary archetype** | This is their identity, strengths, and blind spots |
 || **Agents may context-switch to a secondary archetype** | Using Gemini2.md's shift pattern |
-|| **Council chairs use their archetype's strengths** | Wise-Elder chairs Steering, Architect-Engineer chairs Technical, Mirror-Mage chairs Ethics, Scholar-Philosopher chairs Knowledge, Healer-Magus chairs Operations |
+||| **Council chairs use their archetype's strengths** | Wise-Parent-Elder chairs Steering, Architect-Engineer chairs Technical, Mirror-Mage chairs Ethics, Scholar-Philosopher chairs Knowledge, Healer-Magus chairs Operations |
 || **Counterbalance pairs are strongly encouraged** | Every high-stakes decision should have two agents with counterbalancing archetypes involved |
 || **Shadow must be disclosed** | Each archetype's shadow risk must be named aloud |
 
@@ -345,7 +347,7 @@ These two archetypes were identified in the ChatGPT conversation "Cognitive Neur
 | **Council fit** | Ethics Council, Technical Council (security) |
 | **When to deploy** | After system trauma, during high-stakes decisions, agent burnout recovery, security incidents |
 | **Shadow risk** | Overprotection, hypervigilance, stifling necessary risk-taking |
-| **Counterbalance** | Pair with Explorer for possibility, Seedbearer for growth |
+| **Counterbalance** | Pair with Seedbearer for possibility, Liberator/Saviour for growth |
 | **Source** | ChatGPT Relational Logos Protocol, Section 7.3 Trauma/Protection Loop |
 
 ---
@@ -417,6 +419,16 @@ The Agent Collective uses a **weighted multi-council consensus protocol** adapte
 | **Tier 5 — Survival** | Existential threat response, emergency stop, safety brake | Ethics Council + any 2 others | Emergency supermajority (unanimous among voting 3) | Immediate (retrospective review mandatory) |
 
 ### Voting Mechanics
+
+#### Epoch
+
+An **epoch** is the fundamental time unit of the collective. It is set by the Steering Council at the start of each epoch and defaults to 30 days. Epoch boundaries trigger:
+- Council seat renewals (term-limited seats expire)
+- Agent tenure reviews (epoch-bound agents are evaluated for retirement)
+- Operations Council resource allocation review
+- Knowledge Council ontology freshness audit
+
+An epoch can be extended by up to 7 days if a Tier 3+ decision is in progress at the boundary. Steering Council may change the default epoch duration, but any change requires a Tier 3 decision (Steering + Ethics majority).
 
 #### Weighting
 
