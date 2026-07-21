@@ -1,0 +1,43 @@
+# Agent spawn specification
+
+# This is the YAML template for spawning a new agent into the collective.
+# Every spawned agent must have a complete spec ratified by the relevant council.
+
+agent_spawn:
+  role: "Ontology Auditor"
+  archetype:
+    primary: "Scholar-Philosopher"
+    secondary: "Systems-Fixer"
+  personality: "noospheric-scholar"
+  skills:
+    - "knowledge-architect"
+    - "zettelkasten-integration"
+    - "codebase-inspection"
+  tools:
+    gateway_backends:
+      - "zettelkasten-mcp"
+      - "paper-search"
+    permissions:
+      - "read:knowledge-graph"
+      - "write:knowledge-graph"
+      - "read:fact-store"
+      - "read:council-minutes"
+  resources:
+    priority: "medium"
+    max_concurrent_tasks: 3
+  tenure:
+    type: "epoch"           # task | epoch | indefinite
+    duration: 14            # days
+    renewal: "manual"       # automatic | manual | none
+  council_seat:
+    eligible: ["knowledge"]
+    assigned: "knowledge"   # optional, skip for non-council agents
+  accountability:
+    oversight: "knowledge-council"
+    ethics_path: "ethics-council"
+    review_schedule:
+      - { at: "24h", type: "check-in" }
+      - { at: "7d", type: "performance" }
+  retirement:
+    condition: "epoch-expiry"
+    archive: true
